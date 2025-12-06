@@ -66,6 +66,12 @@ jobs:
         run: |
           pnpm i
           pnpm check ${{ matrix.target }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get Version
+        run: |
+          echo "VERSION=$(cat package.json | jq -r '.version')" >> $GITHUB_ENV
 
       - name: Tauri build
         uses: tauri-apps/tauri-action@v0
@@ -81,8 +87,8 @@ jobs:
           APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         with:
-          tagName: v__VERSION__
-          releaseName: "Clash Verge Rev v__VERSION__"
+          tagName: v${{ env.VERSION }}
+          releaseName: "Clash Verge Rev v${{ env.VERSION }}"
           releaseBody: "More new features are now supported."
           tauriScript: pnpm
           args: --target ${{ matrix.target }}
@@ -129,6 +135,8 @@ jobs:
         run: |
           pnpm i
           pnpm check ${{ matrix.target }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: "Setup for linux"
         run: |-
@@ -248,6 +256,12 @@ jobs:
         run: |
           pnpm i
           pnpm check ${{ matrix.target }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get Version
+        run: |
+          echo "VERSION=$(cat package.json | jq -r '.version')" >> $env:GITHUB_ENV
 
       - name: Download WebView2 Runtime
         run: |
