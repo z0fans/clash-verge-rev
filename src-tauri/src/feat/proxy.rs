@@ -67,7 +67,7 @@ pub fn copy_clash_env() {
         env::var("CLASH_VERGE_REV_IP").unwrap_or_else(|_| "127.0.0.1".to_string());
 
     let app_handle = handle::Handle::global().app_handle().unwrap();
-    let port = { Config::verge().latest().verge_mixed_port.unwrap_or(7897) };
+    let port = { Config::verge().latest().verge_mixed_port.unwrap_or(7890) };
     let http_proxy = format!("http://{clash_verge_rev_ip}:{}", port);
     let socks5_proxy = format!("socks5://{clash_verge_rev_ip}:{}", port);
 

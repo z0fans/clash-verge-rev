@@ -27,7 +27,7 @@ export const ClashPortViewer = forwardRef<DialogRef>((props, ref) => {
     verge?.verge_tproxy_enabled ?? false
   );
   const [mixedPort, setMixedPort] = useState(
-    verge?.verge_mixed_port ?? clashInfo?.mixed_port ?? 7897
+    verge?.verge_mixed_port ?? clashInfo?.mixed_port ?? 7890
   );
   const [socksPort, setSocksPort] = useState(
     verge?.verge_socks_port ?? clashInfo?.socks_port ?? 7898
