@@ -35,7 +35,7 @@
   "identifier": "io.github.clash-verge-rev.clash-verge-rev",
   "plugins": {
     "updater": {
-      "pubkey": "MCowBQYDK2VwAyEAqIkmmjBuqLyuKzTJ68ZPrAaL25a/C+Ys2gzeFNzkWfA=",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEVFODg1QTA2QTRENzlGNEQKUldSTm45ZWtCbHFJN3FYT2xGUG5WS2NEU3FTM3AyQ2owa2YvdEcvYXpxUzYwSC9sVzYveXBCdkoK",
       "endpoints": [
         "https://download.clashverge.dev/https://github.com/z0fans/clash-verge-rev/releases/download/updater/update-proxy.json",
         "https://gh-proxy.com/https://github.com/z0fans/clash-verge-rev/releases/download/updater/update-proxy.json",
