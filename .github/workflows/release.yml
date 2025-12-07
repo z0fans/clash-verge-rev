@@ -74,6 +74,7 @@ jobs:
           echo "VERSION=$(cat package.json | jq -r '.version')" >> $GITHUB_ENV
 
       - name: Tauri build
+        id: build
         uses: tauri-apps/tauri-action@v0
         env:
           NODE_OPTIONS: "--max_old_space_size=4096"
@@ -86,6 +87,15 @@ jobs:
           releaseBody: "More new features are now supported."
           tauriScript: pnpm
           args: --target ${{ matrix.target }}
+
+      - name: Upload Windows installers
+        if: matrix.os == 'windows-latest'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ env.VERSION }}
+          name: "Clash Verge Rev v${{ env.VERSION }}"
+          token: ${{ secrets.GITHUB_TOKEN }}
+          files: src-tauri/target/${{ matrix.target }}/release/bundle/nsis/*setup*
 
   release-for-linux-arm:
     strategy:
