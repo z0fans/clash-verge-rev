@@ -9,3 +9,14 @@ scripts/_env.sh
 .vscode
 .tool-versions
 .idea
+
+# 临时文档和密钥文件 (不要提交!)
+TAURI_PRIVATE_KEY.txt
+TAURI_PUBLIC_KEY_CURRENT.txt
+BUILD_FAILURE_ANALYSIS.md
+DIAGNOSTIC_TEST.md
+FINAL_FIX.md
+GITHUB_SECRETS_*.md
+修复完成总结.md
+快速开始.md
+验证复制.sh
