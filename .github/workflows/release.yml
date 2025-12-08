@@ -2,6 +2,11 @@ name: Release Build
 
 on:
   workflow_dispatch:
+  push:
+    tags:
+      - 'v*'          # 匹配 v 开头的版本标签（如 v1.0.0, v2.3.4）
+      - '!v*-alpha*'  # 排除 alpha 版本（如 v1.0.0-alpha）
+      - '!v*-beta*'   # 排除 beta 版本
 permissions: write-all
 env:
   CARGO_INCREMENTAL: 0
