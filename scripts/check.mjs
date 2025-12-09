@@ -429,7 +429,7 @@ async function resolveLocales() {
 /**
  * main
  */
-const SERVICE_URL = `https://github.com/clash-verge-rev/clash-verge-service/releases/download/${SIDECAR_HOST}`;
+const SERVICE_URL = `https://github.com/z0fans/clash-verge-service/releases/download/${SIDECAR_HOST}`;
 
 const resolveService = () => {
   let ext = platform === "win32" ? ".exe" : "";
