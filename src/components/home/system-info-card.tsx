@@ -15,7 +15,7 @@ import { getSystemInfo, installService } from "@/services/cmds";
 import { useNavigate } from "react-router-dom";
 import { version as appVersion } from "@root/package.json";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { check as checkUpdate } from "@tauri-apps/plugin-updater";
+// import { check as checkUpdate } from "@tauri-apps/plugin-updater";  // 禁用自动更新 - Win7 Legacy
 import { useLockFn } from "ahooks";
 import { Notice } from "@/components/base";
 import { useSystemState } from "@/hooks/use-system-state";
@@ -29,7 +29,7 @@ export const SystemInfoCard = () => {
   // 系统信息状态
   const [systemState, setSystemState] = useState({
     osInfo: "",
-    lastCheckUpdate: "-",
+    // lastCheckUpdate: "-",  // 禁用自动更新 - Win7 Legacy
   });
 
   // 初始化系统信息
