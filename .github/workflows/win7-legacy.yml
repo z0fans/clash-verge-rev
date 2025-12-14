@@ -62,25 +62,17 @@ jobs:
         run: |
           echo "VERSION=$(cat package.json | jq -r '.version')" >> $env:GITHUB_ENV
 
-      - name: Download VxKex Installer
+      - name: Verify VxKex Installer
         run: |
-          Write-Host "下载 VxKex 安装程序..."
-          $vxkexUrl = "https://github.com/i486/VxKex/releases/download/v1.1.2.1428/KexSetup_Release_1_1_2_1428.exe"
+          Write-Host "验证 VxKex 安装程序..."
           $vxkexPath = ".\src-tauri\vxkex\KexSetup.exe"
 
-          # 创建 vxkex 目录（如果不存在）
-          if (-not (Test-Path ".\src-tauri\vxkex")) {
-            New-Item -ItemType Directory -Path ".\src-tauri\vxkex" -Force
-          }
-
-          # 下载 VxKex
-          Invoke-WebRequest -Uri $vxkexUrl -OutFile $vxkexPath
-
-          # 验证文件
+          # 验证文件是否存在
           if (Test-Path $vxkexPath) {
-            Write-Host "✅ VxKex 下载成功: $(Get-Item $vxkexPath | Select-Object -ExpandProperty Length) bytes"
+            $fileSize = (Get-Item $vxkexPath).Length
+            Write-Host "✅ VxKex 安装程序已存在: $fileSize bytes"
           } else {
-            Write-Error "❌ VxKex 下载失败"
+            Write-Error "❌ VxKex 安装程序不存在，请确保已提交到仓库"
             exit 1
           }
 
