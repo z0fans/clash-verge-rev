@@ -49,55 +49,57 @@ export const SystemInfoCard = () => {
       })
       .catch(console.error);
 
-    // 获取最后检查更新时间
-    const lastCheck = localStorage.getItem("last_check_update");
-    if (lastCheck) {
-      try {
-        const timestamp = parseInt(lastCheck, 10);
-        if (!isNaN(timestamp)) {
-          setSystemState((prev) => ({
-            ...prev,
-            lastCheckUpdate: new Date(timestamp).toLocaleString(),
-          }));
-        }
-      } catch (e) {
-        console.error("Error parsing last check update time", e);
-      }
-    } else if (verge?.auto_check_update) {
-      // 如果启用了自动检查更新但没有记录，设置当前时间并延迟检查
-      const now = Date.now();
-      localStorage.setItem("last_check_update", now.toString());
-      setSystemState((prev) => ({
-        ...prev,
-        lastCheckUpdate: new Date(now).toLocaleString(),
-      }));
+    // 禁用自动更新 - Win7 Legacy
+    // // 获取最后检查更新时间
+    // const lastCheck = localStorage.getItem("last_check_update");
+    // if (lastCheck) {
+    //   try {
+    //     const timestamp = parseInt(lastCheck, 10);
+    //     if (!isNaN(timestamp)) {
+    //       setSystemState((prev) => ({
+    //         ...prev,
+    //         lastCheckUpdate: new Date(timestamp).toLocaleString(),
+    //       }));
+    //     }
+    //   } catch (e) {
+    //     console.error("Error parsing last check update time", e);
+    //   }
+    // } else if (verge?.auto_check_update) {
+    //   // 如果启用了自动检查更新但没有记录，设置当前时间并延迟检查
+    //   const now = Date.now();
+    //   localStorage.setItem("last_check_update", now.toString());
+    //   setSystemState((prev) => ({
+    //     ...prev,
+    //     lastCheckUpdate: new Date(now).toLocaleString(),
+    //   }));
+    //
+    //   setTimeout(() => {
+    //     if (verge?.auto_check_update) {
+    //       checkUpdate().catch(console.error);
+    //     }
+    //   }, 5000);
+    // }
+  }, []);
 
-      setTimeout(() => {
-        if (verge?.auto_check_update) {
-          checkUpdate().catch(console.error);
-        }
-      }, 5000);
-    }
-  }, [verge?.auto_check_update]);
-
-  // 自动检查更新逻辑
-  useSWR(
-    verge?.auto_check_update ? "checkUpdate" : null,
-    async () => {
-      const now = Date.now();
-      localStorage.setItem("last_check_update", now.toString());
-      setSystemState((prev) => ({
-        ...prev,
-        lastCheckUpdate: new Date(now).toLocaleString(),
-      }));
-      return await checkUpdate();
-    },
-    {
-      revalidateOnFocus: false,
-      refreshInterval: 24 * 60 * 60 * 1000, // 每天检查一次
-      dedupingInterval: 60 * 60 * 1000, // 1小时内不重复检查
-    },
-  );
+  // 禁用自动更新 - Win7 Legacy
+  // // 自动检查更新逻辑
+  // useSWR(
+  //   verge?.auto_check_update ? "checkUpdate" : null,
+  //   async () => {
+  //     const now = Date.now();
+  //     localStorage.setItem("last_check_update", now.toString());
+  //     setSystemState((prev) => ({
+  //       ...prev,
+  //       lastCheckUpdate: new Date(now).toLocaleString(),
+  //     }));
+  //     return await checkUpdate();
+  //   },
+  //   {
+  //     revalidateOnFocus: false,
+  //     refreshInterval: 24 * 60 * 60 * 1000, // 每天检查一次
+  //     dedupingInterval: 60 * 60 * 1000, // 1小时内不重复检查
+  //   },
+  // );
 
   // 导航到设置页面
   const goToSettings = useCallback(() => {
@@ -135,20 +137,21 @@ export const SystemInfoCard = () => {
     }
   }, [isSidecarMode, isAdminMode, onInstallService]);
 
-  // 检查更新
-  const onCheckUpdate = useLockFn(async () => {
-    try {
-      const info = await checkUpdate();
-      if (!info?.available) {
-        Notice.success(t("Currently on the Latest Version"));
-      } else {
-        Notice.info(t("Update Available"), 2000);
-        goToSettings();
-      }
-    } catch (err: any) {
-      Notice.error(err.message || err.toString());
-    }
-  });
+  // 禁用自动更新 - Win7 Legacy
+  // // 检查更新
+  // const onCheckUpdate = useLockFn(async () => {
+  //   try {
+  //     const info = await checkUpdate();
+  //     if (!info?.available) {
+  //       Notice.success(t("Currently on the Latest Version"));
+  //     } else {
+  //       Notice.info(t("Update Available"), 2000);
+  //       goToSettings();
+  //     }
+  //   } catch (err: any) {
+  //     Notice.error(err.message || err.toString());
+  //   }
+  // });
 
   // 是否启用自启动
   const autoLaunchEnabled = useMemo(
@@ -289,7 +292,8 @@ export const SystemInfoCard = () => {
           </Typography>
         </Stack>
         <Divider />
-        <Stack direction="row" justifyContent="space-between">
+        {/* 禁用自动更新 - Win7 Legacy */}
+        {/* <Stack direction="row" justifyContent="space-between">
           <Typography variant="body2" color="text.secondary">
             {t("Last Check Update")}
           </Typography>
@@ -306,7 +310,7 @@ export const SystemInfoCard = () => {
             {systemState.lastCheckUpdate}
           </Typography>
         </Stack>
-        <Divider />
+        <Divider /> */}
         <Stack direction="row" justifyContent="space-between">
           <Typography variant="body2" color="text.secondary">
             {t("Verge Version")}
