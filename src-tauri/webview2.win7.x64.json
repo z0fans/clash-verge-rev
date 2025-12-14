@@ -1,0 +1,29 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+  "identifier": "io.github.clash-verge-rev.clash-verge-rev.win7",
+  "bundle": {
+    "targets": ["nsis"],
+    "resources": [
+      "vxkex/*",
+      "WIN7_README.txt",
+      "WIN7_VXKEX_README.md"
+    ],
+    "windows": {
+      "certificateThumbprint": null,
+      "digestAlgorithm": "sha256",
+      "timestampUrl": "",
+      "webviewInstallMode": {
+        "type": "fixedRuntime",
+        "path": "./Microsoft.WebView2.FixedVersionRuntime.109.0.1518.78.x64/"
+      },
+      "nsis": {
+        "displayLanguageSelector": true,
+        "installerIcon": "icons/icon.ico",
+        "languages": ["SimpChinese", "English"],
+        "installMode": "perMachine",
+        "template": "./packages/windows/installer-win7.nsi"
+      }
+    }
+  },
+  "plugins": {}
+}

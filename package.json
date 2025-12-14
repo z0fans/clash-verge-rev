@@ -7,6 +7,8 @@
     "dev:diff": "cross-env RUST_BACKTRACE=1 tauri dev -f verge-dev -- --profile fast-dev",
     "build": "cross-env NODE_OPTIONS='--max-old-space-size=4096' tauri build",
     "build:fast": "cross-env NODE_OPTIONS='--max-old-space-size=4096' tauri build -- --profile fast-release",
+    "build:win7": "cross-env NODE_OPTIONS='--max-old-space-size=4096' tauri build --target x86_64-pc-windows-msvc",
+    "prebuild:win7": "node -e \"const fs=require('fs');if(fs.existsSync('src-tauri/tauri.windows.conf.json'))fs.unlinkSync('src-tauri/tauri.windows.conf.json');fs.copyFileSync('src-tauri/webview2.win7.x64.json','src-tauri/tauri.windows.conf.json')\"",
     "tauri": "tauri",
     "web:dev": "vite",
     "web:build": "tsc --noEmit && vite build",
