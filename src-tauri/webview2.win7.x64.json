@@ -4,9 +4,7 @@
   "bundle": {
     "targets": ["nsis"],
     "resources": [
-      "vxkex/*",
-      "WIN7_README.txt",
-      "WIN7_VXKEX_README.md"
+      "vxkex/*"
     ],
     "windows": {
       "certificateThumbprint": null,
