@@ -62,12 +62,12 @@ jobs:
         run: |
           echo "VERSION=$(cat package.json | jq -r '.version')" >> $env:GITHUB_ENV
 
-      - name: Verify VxKex Installer
+      - name: Verify VxKex and Resources
         run: |
           Write-Host "验证 VxKex 安装程序..."
           $vxkexPath = ".\src-tauri\vxkex\KexSetup.exe"
 
-          # 验证文件是否存在
+          # 验证 VxKex 文件是否存在
           if (Test-Path $vxkexPath) {
             $fileSize = (Get-Item $vxkexPath).Length
             Write-Host "✅ VxKex 安装程序已存在: $fileSize bytes"
@@ -75,6 +75,20 @@ jobs:
             Write-Error "❌ VxKex 安装程序不存在，请确保已提交到仓库"
             exit 1
           }
+
+          # 验证 sysproxy.exe 是否被下载
+          $sysproxyPath = ".\src-tauri\resources\sysproxy.exe"
+          if (Test-Path $sysproxyPath) {
+            $fileSize = (Get-Item $sysproxyPath).Length
+            Write-Host "✅ sysproxy.exe 已下载: $fileSize bytes"
+          } else {
+            Write-Error "❌ sysproxy.exe 未下载"
+            exit 1
+          }
+
+          # 列出 resources 目录内容
+          Write-Host "`n📁 resources 目录内容:"
+          Get-ChildItem ".\src-tauri\resources" | Format-Table Name, Length
 
       - name: Download WebView2 Runtime
         run: |

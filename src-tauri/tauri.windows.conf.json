@@ -3,6 +3,11 @@
   "identifier": "io.github.clash-verge-rev.clash-verge-rev",
   "bundle": {
     "targets": ["nsis"],
+    "resources": [
+      "resources",
+      "resources/locales/*",
+      "vxkex"
+    ],
     "windows": {
       "certificateThumbprint": null,
       "digestAlgorithm": "sha256",
