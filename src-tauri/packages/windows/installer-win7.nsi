@@ -181,30 +181,31 @@ Function InstallVxKex
     ${EndIf}
 FunctionEnd
 
-; 配置 VxKex - 直接使用 NSIS 注册表操作
+; 配置 VxKex - 完整配置（主键 + 子键）
 Function ConfigureVxKex
     ${If} $VxKexInstallSuccess == "1"
         DetailPrint "正在配置 VxKex..."
 
-        ; 配置 clash-verge.exe
+        ; 配置 clash-verge.exe 主键
         WriteRegStr HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\clash-verge.exe" "VerifierDlls" "KexDll.dll"
         WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\clash-verge.exe" "VxKexFlags" 0x00000300
         WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\clash-verge.exe" "VxKexDisableChildProcesses" 1
+        WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\clash-verge.exe" "VxKexDisableAppSpecific" 0
+        WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\clash-verge.exe" "VxKexWinVerSpoof" 0x0A000000
+        WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\clash-verge.exe" "UseFilter" 1
 
-        ; 配置 clash-verge-service.exe
-        WriteRegStr HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\clash-verge-service.exe" "VerifierDlls" "KexDll.dll"
-        WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\clash-verge-service.exe" "VxKexFlags" 0x00000300
-        WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\clash-verge-service.exe" "VxKexDisableChildProcesses" 1
+        ; 配置 clash-verge.exe 子键（VxKex Filter 配置）
+        WriteRegStr HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\clash-verge.exe\VxKex_5B92DDFC3A146F50" "FilterFullPath" "$INSTDIR\clash-verge.exe"
+        WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\clash-verge.exe\VxKex_5B92DDFC3A146F50" "KEX_DisableForChild" 1
+        WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\clash-verge.exe\VxKex_5B92DDFC3A146F50" "KEX_DisableAppSpecific" 0
+        WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\clash-verge.exe\VxKex_5B92DDFC3A146F50" "KEX_WinVerSpoof" 0
+        WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\clash-verge.exe\VxKex_5B92DDFC3A146F50" "KEX_StrongVersionSpoof" 0
+        WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\clash-verge.exe\VxKex_5B92DDFC3A146F50" "GlobalFlag" 0x00000100
+        WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\clash-verge.exe\VxKex_5B92DDFC3A146F50" "VerifierFlags" 0x80000000
+        WriteRegStr HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\clash-verge.exe\VxKex_5B92DDFC3A146F50" "VerifierDlls" "kexdll.dll"
 
-        ; 配置 install-service.exe
-        WriteRegStr HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\install-service.exe" "VerifierDlls" "KexDll.dll"
-        WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\install-service.exe" "VxKexFlags" 0x00000300
-        WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\install-service.exe" "VxKexDisableChildProcesses" 1
-
-        ; 配置 uninstall-service.exe
-        WriteRegStr HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\uninstall-service.exe" "VerifierDlls" "KexDll.dll"
-        WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\uninstall-service.exe" "VxKexFlags" 0x00000300
-        WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\uninstall-service.exe" "VxKexDisableChildProcesses" 1
+        ; 注意: 其他服务程序暂时不配置 VxKex，避免过多注册表项
+        ; 主程序 clash-verge.exe 已配置完整的 VxKex 支持
 
         DetailPrint "VxKex 配置成功"
     ${EndIf}
