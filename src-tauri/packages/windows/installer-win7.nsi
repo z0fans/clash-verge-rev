@@ -181,19 +181,32 @@ Function InstallVxKex
     ${EndIf}
 FunctionEnd
 
-; 配置 VxKex
+; 配置 VxKex - 直接使用 NSIS 注册表操作
 Function ConfigureVxKex
     ${If} $VxKexInstallSuccess == "1"
         DetailPrint "正在配置 VxKex..."
-        ${If} ${FileExists} "$INSTDIR\${VXKEX_CONFIG_SCRIPT}"
-            nsExec::ExecToLog 'powershell.exe -ExecutionPolicy Bypass -NoProfile -NonInteractive -WindowStyle Hidden -File "$INSTDIR\${VXKEX_CONFIG_SCRIPT}" -InstallDir "$INSTDIR"'
-            Pop $0
-            ${If} $0 == 0
-                DetailPrint "VxKex 配置成功"
-            ${Else}
-                DetailPrint "VxKex 配置警告，错误代码: $0"
-            ${EndIf}
-        ${EndIf}
+
+        ; 配置 clash-verge.exe
+        WriteRegStr HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\clash-verge.exe" "VerifierDlls" "KexDll.dll"
+        WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\clash-verge.exe" "VxKexFlags" 0x00000300
+        WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\clash-verge.exe" "VxKexDisableChildProcesses" 1
+
+        ; 配置 clash-verge-service.exe
+        WriteRegStr HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\clash-verge-service.exe" "VerifierDlls" "KexDll.dll"
+        WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\clash-verge-service.exe" "VxKexFlags" 0x00000300
+        WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\clash-verge-service.exe" "VxKexDisableChildProcesses" 1
+
+        ; 配置 install-service.exe
+        WriteRegStr HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\install-service.exe" "VerifierDlls" "KexDll.dll"
+        WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\install-service.exe" "VxKexFlags" 0x00000300
+        WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\install-service.exe" "VxKexDisableChildProcesses" 1
+
+        ; 配置 uninstall-service.exe
+        WriteRegStr HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\uninstall-service.exe" "VerifierDlls" "KexDll.dll"
+        WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\uninstall-service.exe" "VxKexFlags" 0x00000300
+        WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\uninstall-service.exe" "VxKexDisableChildProcesses" 1
+
+        DetailPrint "VxKex 配置成功"
     ${EndIf}
 FunctionEnd
 
