@@ -103,7 +103,8 @@ Function un.RemoveVxKexConfig
     DetailPrint "正在移除 VxKex 配置..."
 
     ; 移除注册表配置
-    DeleteRegKey HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\Clash Verge Win7.exe"
+    ; 注意: 使用实际的可执行文件名 clash-verge.exe
+    DeleteRegKey HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\clash-verge.exe"
     DeleteRegKey HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\clash-verge-service.exe"
     DeleteRegKey HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\install-service.exe"
     DeleteRegKey HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\uninstall-service.exe"

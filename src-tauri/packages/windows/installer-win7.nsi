@@ -882,6 +882,11 @@ Section Install
     File /a "/oname={{this}}" "{{@key}}"
   {{/each}}
 
+  ; VxKex: 复制 VxKex 文件到安装目录 - Win7 Legacy
+  CreateDirectory "$INSTDIR\vxkex"
+  File "/oname=$INSTDIR\vxkex\KexSetup.exe" "vxkex\KexSetup.exe"
+  File "/oname=$INSTDIR\vxkex\configure-vxkex.ps1" "vxkex\configure-vxkex.ps1"
+
   !insertmacro StartVergeService
 
   ; Create uninstaller
@@ -993,7 +998,7 @@ Section Uninstall
 
   ; VxKex: 移除配置 - Win7 Legacy
   DetailPrint "正在移除 VxKex 配置..."
-  DeleteRegKey HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\Clash Verge Win7.exe"
+  DeleteRegKey HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\clash-verge.exe"
   DeleteRegKey HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\clash-verge-service.exe"
   DeleteRegKey HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\install-service.exe"
   DeleteRegKey HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\uninstall-service.exe"

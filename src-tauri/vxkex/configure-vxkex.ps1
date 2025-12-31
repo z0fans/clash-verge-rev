@@ -133,8 +133,9 @@ if ($InstallDir -eq $PSScriptRoot) {
 Write-Log "安装目录: $InstallDir"
 
 # 需要配置 VxKex 的可执行文件列表
+# 注意: Tauri 编译出的主程序名称是 clash-verge.exe (小写,无空格)
 $executables = @(
-    @{Name = "Clash Verge Win7.exe"; Path = $InstallDir},
+    @{Name = "clash-verge.exe"; Path = $InstallDir},
     @{Name = "clash-verge-service.exe"; Path = Join-Path $InstallDir "resources"},
     @{Name = "install-service.exe"; Path = Join-Path $InstallDir "resources"},
     @{Name = "uninstall-service.exe"; Path = Join-Path $InstallDir "resources"}
