@@ -13,7 +13,8 @@
     ],
     "resources": [
       "resources",
-      "resources/locales/*"
+      "resources/locales/*",
+      "vxkex"
     ],
     "publisher": "Clash Verge Rev",
     "externalBin": [

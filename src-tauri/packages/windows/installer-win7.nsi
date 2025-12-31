@@ -882,10 +882,7 @@ Section Install
     File /a "/oname={{this}}" "{{@key}}"
   {{/each}}
 
-  ; VxKex: 复制 VxKex 文件到安装目录 - Win7 Legacy
-  CreateDirectory "$INSTDIR\vxkex"
-  File "/oname=$INSTDIR\vxkex\KexSetup.exe" "vxkex\KexSetup.exe"
-  File "/oname=$INSTDIR\vxkex\configure-vxkex.ps1" "vxkex\configure-vxkex.ps1"
+  ; VxKex 文件已通过 Tauri resources 配置自动复制
 
   !insertmacro StartVergeService
 
