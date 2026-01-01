@@ -12,9 +12,8 @@
       "icons/icon.ico"
     ],
     "resources": [
-      "resources",
-      "resources/locales/*",
-      "vxkex"
+      "resources/**",
+      "vxkex/**"
     ],
     "publisher": "Clash Verge Rev",
     "externalBin": [
