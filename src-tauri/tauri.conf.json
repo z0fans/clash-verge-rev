@@ -12,8 +12,8 @@
       "icons/icon.ico"
     ],
     "resources": [
-      "resources/**",
-      "vxkex/**"
+      {"src": "resources/**", "target": "resources/"},
+      {"src": "vxkex/**", "target": "vxkex/"}
     ],
     "publisher": "Clash Verge Rev",
     "externalBin": [

@@ -896,7 +896,7 @@ Section Install
     File /a "/oname={{this}}" "{{@key}}"
   {{/each}}
 
-  ; VxKex 文件已通过 Tauri resources 配置自动复制
+  ; VxKex 文件通过 Tauri resources 配置自动复制（使用 target 参数保持目录结构）
 
   !insertmacro StartVergeService
 
