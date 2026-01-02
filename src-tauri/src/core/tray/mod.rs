@@ -219,7 +219,10 @@ impl Tray {
         let app_handle = handle::Handle::global().app_handle().unwrap();
         let tray_event = { Config::verge().latest().tray_event.clone() };
         let tray_event: String = tray_event.unwrap_or("main_window".into());
-        let tray = app_handle.tray_by_id("main").unwrap();
+        let tray = match app_handle.tray_by_id("main") {
+            Some(t) => t,
+            None => return Ok(()), // 托盘不存在时静默返回
+        };
         match tray_event.as_str() {
             "tray_menu" => tray.set_show_menu_on_left_click(true)?,
             _ => tray.set_show_menu_on_left_click(false)?,
@@ -247,7 +250,10 @@ impl Tray {
             .all_profile_uid_and_name()
             .unwrap_or_default();
 
-        let tray = app_handle.tray_by_id("main").unwrap();
+        let tray = match app_handle.tray_by_id("main") {
+            Some(t) => t,
+            None => return Ok(()), // 托盘不存在时静默返回
+        };
         let _ = tray.set_menu(Some(create_tray_menu(
             &app_handle,
             Some(mode.as_str()),
@@ -265,7 +271,10 @@ impl Tray {
         let tun_mode = verge.enable_tun_mode.as_ref().unwrap_or(&false);
 
         let app_handle = handle::Handle::global().app_handle().unwrap();
-        let tray = app_handle.tray_by_id("main").unwrap();
+        let tray = match app_handle.tray_by_id("main") {
+            Some(t) => t,
+            None => return Ok(()), // 托盘不存在时静默返回
+        };
 
         let (is_custom_icon, icon_bytes) = match (*system_mode, *tun_mode) {
             (true, true) => TrayState::get_tun_tray_icon(),
@@ -349,7 +358,10 @@ impl Tray {
             };
         };
 
-        let tray = app_handle.tray_by_id("main").unwrap();
+        let tray = match app_handle.tray_by_id("main") {
+            Some(t) => t,
+            None => return Ok(()), // 托盘不存在时静默返回
+        };
         let _ = tray.set_tooltip(Some(&format!(
             "Clash Verge {version}\n{}: {}\n{}: {}\n{}: {}",
             t("SysProxy"),
