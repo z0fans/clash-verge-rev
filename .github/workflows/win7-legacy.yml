@@ -96,6 +96,7 @@ jobs:
           $webview2Url = "https://github.com/westinyang/WebView2RuntimeArchive/releases/download/109.0.1518.78/Microsoft.WebView2.FixedVersionRuntime.109.0.1518.78.x64.cab"
           $webview2Cab = ".\Microsoft.WebView2.FixedVersionRuntime.109.0.1518.78.x64.cab"
           $webview2Dir = "Microsoft.WebView2.FixedVersionRuntime.109.0.1518.78.x64"
+          $targetDir = Join-Path ".\src-tauri" $webview2Dir
 
           # 下载 WebView2 CAB
           Invoke-WebRequest -Uri $webview2Url -OutFile $webview2Cab
@@ -107,21 +108,24 @@ jobs:
           Expand $webview2Cab -F:* $tempDir
 
           # 分析 CAB 解压后的目录结构
-          Write-Host "分析解压后的目录结构..."
-          Get-ChildItem -Path $tempDir -Recurse -Depth 2 | Select-Object FullName
+          Write-Host "=== 分析解压后的目录结构 ==="
+          Get-ChildItem -Path $tempDir -Recurse -Depth 3 | Select-Object FullName
 
-          # CAB 解压后可能有多层嵌套，找到包含 msedgewebview2.exe 的目录
-          $targetDir = Join-Path ".\src-tauri" $webview2Dir
+          # 查找 msedgewebview2.exe 所在目录
           $msedgeExe = Get-ChildItem -Path $tempDir -Recurse -Filter "msedgewebview2.exe" | Select-Object -First 1
 
           if ($msedgeExe) {
             $sourceDir = $msedgeExe.DirectoryName
             Write-Host "找到 WebView2 文件目录: $sourceDir"
 
-            # 确保目标目录存在
+            # 清理并创建目标目录
+            if (Test-Path $targetDir) {
+              Remove-Item -Path $targetDir -Recurse -Force
+            }
             New-Item -ItemType Directory -Force -Path $targetDir | Out-Null
 
-            # 复制目录内容（不是目录本身）到目标
+            # 复制文件 - 只复制 msedgewebview2.exe 所在目录的内容
+            Write-Host "复制 WebView2 文件..."
             Copy-Item -Path "$sourceDir\*" -Destination $targetDir -Recurse -Force
 
             Write-Host "✅ WebView2 文件已复制到: $targetDir"
@@ -131,12 +135,43 @@ jobs:
             exit 1
           }
 
-          # 验证解压结果
+          # 验证目标目录结构 - 确保没有嵌套
+          Write-Host "=== 验证目标目录结构 ==="
           $verifyExe = Join-Path $targetDir "msedgewebview2.exe"
+          $nestedDir = Join-Path $targetDir $webview2Dir
+
+          # 检查是否存在嵌套目录
+          if (Test-Path $nestedDir) {
+            Write-Host "⚠️ 检测到嵌套目录，正在修正..."
+            $nestedExe = Join-Path $nestedDir "msedgewebview2.exe"
+            if (Test-Path $nestedExe) {
+              # 将嵌套目录内容移动到上一级
+              Write-Host "将嵌套目录内容移动到正确位置..."
+              Get-ChildItem -Path $nestedDir | ForEach-Object {
+                $destPath = Join-Path $targetDir $_.Name
+                if (Test-Path $destPath) {
+                  Remove-Item -Path $destPath -Recurse -Force
+                }
+                Move-Item -Path $_.FullName -Destination $targetDir -Force
+              }
+              # 删除空的嵌套目录
+              Remove-Item -Path $nestedDir -Force -ErrorAction SilentlyContinue
+              Write-Host "✅ 嵌套目录已修正"
+            }
+          }
+
+          # 最终验证
           if (Test-Path $verifyExe) {
             Write-Host "✅ 验证成功：msedgewebview2.exe 位于正确位置"
             Write-Host "目标目录内容:"
             Get-ChildItem -Path $targetDir | Select-Object Name, Length | Format-Table
+
+            # 确保没有嵌套
+            $finalNestedCheck = Join-Path $targetDir $webview2Dir
+            if (Test-Path $finalNestedCheck) {
+              Write-Error "❌ 仍然存在嵌套目录!"
+              exit 1
+            }
           } else {
             Write-Host "目标目录内容:"
             Get-ChildItem -Path $targetDir -Recurse | Select-Object FullName
