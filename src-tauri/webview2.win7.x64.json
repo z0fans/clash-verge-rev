@@ -4,7 +4,8 @@
   "bundle": {
     "targets": ["nsis"],
     "resources": {
-      "resources/": "resources/"
+      "resources/": "resources/",
+      "vxkex/": "vxkex/"
     },
     "windows": {
       "certificateThumbprint": null,

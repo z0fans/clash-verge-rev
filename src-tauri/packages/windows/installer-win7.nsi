@@ -950,12 +950,8 @@ Section Install
     File /a "/oname={{this}}" "{{@key}}"
   {{/each}}
 
-  ; 手动复制 VxKex 文件（不使用 Tauri resources，避免文件锁定问题）
-  DetailPrint "正在复制 VxKex 文件..."
-  SetOutPath "$INSTDIR\vxkex"
-  File /a "vxkex\KexSetup.exe"
-  File /a "vxkex\configure-vxkex.ps1"
-  SetOutPath "$INSTDIR"
+  ; VxKex 文件已通过 Tauri resources 配置自动复制到 $INSTDIR\vxkex\
+  ; 无需手动复制，resources 配置: "vxkex/": "vxkex/"
 
   !insertmacro StartVergeService
 
