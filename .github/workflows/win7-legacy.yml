@@ -95,24 +95,49 @@ jobs:
           Write-Host "下载 WebView2 固定运行时..."
           $webview2Url = "https://github.com/westinyang/WebView2RuntimeArchive/releases/download/109.0.1518.78/Microsoft.WebView2.FixedVersionRuntime.109.0.1518.78.x64.cab"
           $webview2Cab = ".\Microsoft.WebView2.FixedVersionRuntime.109.0.1518.78.x64.cab"
+          $webview2Dir = "Microsoft.WebView2.FixedVersionRuntime.109.0.1518.78.x64"
 
           # 下载 WebView2 CAB
           Invoke-WebRequest -Uri $webview2Url -OutFile $webview2Cab
 
-          # 解压到 src-tauri
+          # 解压到临时目录
           Write-Host "解压 WebView2 运行时..."
-          Expand $webview2Cab -F:* .\src-tauri
+          $tempDir = ".\webview2_temp"
+          New-Item -ItemType Directory -Force -Path $tempDir | Out-Null
+          Expand $webview2Cab -F:* $tempDir
 
-          # 验证解压
-          if (Test-Path ".\src-tauri\Microsoft.WebView2.FixedVersionRuntime.109.0.1518.78.x64") {
-            Write-Host "✅ WebView2 解压成功"
+          # CAB 解压后内部有嵌套目录，需要移动到正确位置
+          # 结构: webview2_temp/Microsoft.WebView2.../Microsoft.WebView2.../files
+          $nestedDir = Join-Path $tempDir $webview2Dir
+          $targetDir = Join-Path ".\src-tauri" $webview2Dir
+
+          if (Test-Path (Join-Path $nestedDir $webview2Dir)) {
+            # 如果存在嵌套目录，从嵌套目录复制
+            Write-Host "检测到嵌套目录结构，正在修正..."
+            $sourceDir = Join-Path $nestedDir $webview2Dir
+            Copy-Item -Path $sourceDir -Destination $targetDir -Recurse -Force
+          } elseif (Test-Path $nestedDir) {
+            # 直接复制
+            Copy-Item -Path $nestedDir -Destination $targetDir -Recurse -Force
           } else {
-            Write-Error "❌ WebView2 解压失败"
+            Write-Error "❌ WebView2 解压失败：找不到目录"
             exit 1
           }
 
-          # 清理 CAB 文件
-          Remove-Item $webview2Cab
+          # 验证解压结果 - 检查关键文件是否在正确位置
+          $msedgeExe = Join-Path $targetDir "msedgewebview2.exe"
+          if (Test-Path $msedgeExe) {
+            Write-Host "✅ WebView2 解压成功，msedgewebview2.exe 位于正确位置"
+          } else {
+            Write-Host "当前目录结构:"
+            Get-ChildItem -Path $targetDir -Recurse | Select-Object FullName
+            Write-Error "❌ WebView2 目录结构不正确：msedgewebview2.exe 不在预期位置"
+            exit 1
+          }
+
+          # 清理临时文件
+          Remove-Item $webview2Cab -Force
+          Remove-Item $tempDir -Recurse -Force
 
       - name: Prepare Win7 Configuration
         run: |
