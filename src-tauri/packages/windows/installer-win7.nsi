@@ -186,15 +186,13 @@ Function ConfigureVxKex
     ${If} $VxKexInstallSuccess == "1"
         DetailPrint "正在配置 VxKex..."
 
-        ; 配置 clash-verge.exe 主键
+        ; ===== 配置 clash-verge.exe =====
         WriteRegStr HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\clash-verge.exe" "VerifierDlls" "KexDll.dll"
         WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\clash-verge.exe" "VxKexFlags" 0x00000300
         WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\clash-verge.exe" "VxKexDisableChildProcesses" 1
         WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\clash-verge.exe" "VxKexDisableAppSpecific" 0
         WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\clash-verge.exe" "VxKexWinVerSpoof" 0x0A000000
         WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\clash-verge.exe" "UseFilter" 1
-
-        ; 配置 clash-verge.exe 子键（VxKex Filter 配置）
         WriteRegStr HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\clash-verge.exe\VxKex_5B92DDFC3A146F50" "FilterFullPath" "$INSTDIR\clash-verge.exe"
         WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\clash-verge.exe\VxKex_5B92DDFC3A146F50" "KEX_DisableForChild" 1
         WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\clash-verge.exe\VxKex_5B92DDFC3A146F50" "KEX_DisableAppSpecific" 0
@@ -204,10 +202,55 @@ Function ConfigureVxKex
         WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\clash-verge.exe\VxKex_5B92DDFC3A146F50" "VerifierFlags" 0x80000000
         WriteRegStr HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\clash-verge.exe\VxKex_5B92DDFC3A146F50" "VerifierDlls" "kexdll.dll"
 
-        ; 注意: 其他服务程序暂时不配置 VxKex，避免过多注册表项
-        ; 主程序 clash-verge.exe 已配置完整的 VxKex 支持
+        ; ===== 配置 clash-verge-service.exe =====
+        WriteRegStr HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\clash-verge-service.exe" "VerifierDlls" "KexDll.dll"
+        WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\clash-verge-service.exe" "VxKexFlags" 0x00000300
+        WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\clash-verge-service.exe" "VxKexDisableChildProcesses" 1
+        WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\clash-verge-service.exe" "VxKexDisableAppSpecific" 0
+        WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\clash-verge-service.exe" "VxKexWinVerSpoof" 0x0A000000
+        WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\clash-verge-service.exe" "UseFilter" 1
+        WriteRegStr HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\clash-verge-service.exe\VxKex_SERVICE" "FilterFullPath" "$INSTDIR\resources\clash-verge-service.exe"
+        WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\clash-verge-service.exe\VxKex_SERVICE" "KEX_DisableForChild" 1
+        WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\clash-verge-service.exe\VxKex_SERVICE" "KEX_DisableAppSpecific" 0
+        WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\clash-verge-service.exe\VxKex_SERVICE" "KEX_WinVerSpoof" 0
+        WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\clash-verge-service.exe\VxKex_SERVICE" "KEX_StrongVersionSpoof" 0
+        WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\clash-verge-service.exe\VxKex_SERVICE" "GlobalFlag" 0x00000100
+        WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\clash-verge-service.exe\VxKex_SERVICE" "VerifierFlags" 0x80000000
+        WriteRegStr HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\clash-verge-service.exe\VxKex_SERVICE" "VerifierDlls" "kexdll.dll"
 
-        DetailPrint "VxKex 配置成功"
+        ; ===== 配置 install-service.exe =====
+        WriteRegStr HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\install-service.exe" "VerifierDlls" "KexDll.dll"
+        WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\install-service.exe" "VxKexFlags" 0x00000300
+        WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\install-service.exe" "VxKexDisableChildProcesses" 1
+        WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\install-service.exe" "VxKexDisableAppSpecific" 0
+        WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\install-service.exe" "VxKexWinVerSpoof" 0x0A000000
+        WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\install-service.exe" "UseFilter" 1
+        WriteRegStr HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\install-service.exe\VxKex_INSTALL" "FilterFullPath" "$INSTDIR\resources\install-service.exe"
+        WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\install-service.exe\VxKex_INSTALL" "KEX_DisableForChild" 1
+        WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\install-service.exe\VxKex_INSTALL" "KEX_DisableAppSpecific" 0
+        WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\install-service.exe\VxKex_INSTALL" "KEX_WinVerSpoof" 0
+        WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\install-service.exe\VxKex_INSTALL" "KEX_StrongVersionSpoof" 0
+        WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\install-service.exe\VxKex_INSTALL" "GlobalFlag" 0x00000100
+        WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\install-service.exe\VxKex_INSTALL" "VerifierFlags" 0x80000000
+        WriteRegStr HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\install-service.exe\VxKex_INSTALL" "VerifierDlls" "kexdll.dll"
+
+        ; ===== 配置 uninstall-service.exe =====
+        WriteRegStr HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\uninstall-service.exe" "VerifierDlls" "KexDll.dll"
+        WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\uninstall-service.exe" "VxKexFlags" 0x00000300
+        WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\uninstall-service.exe" "VxKexDisableChildProcesses" 1
+        WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\uninstall-service.exe" "VxKexDisableAppSpecific" 0
+        WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\uninstall-service.exe" "VxKexWinVerSpoof" 0x0A000000
+        WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\uninstall-service.exe" "UseFilter" 1
+        WriteRegStr HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\uninstall-service.exe\VxKex_UNINSTALL" "FilterFullPath" "$INSTDIR\resources\uninstall-service.exe"
+        WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\uninstall-service.exe\VxKex_UNINSTALL" "KEX_DisableForChild" 1
+        WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\uninstall-service.exe\VxKex_UNINSTALL" "KEX_DisableAppSpecific" 0
+        WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\uninstall-service.exe\VxKex_UNINSTALL" "KEX_WinVerSpoof" 0
+        WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\uninstall-service.exe\VxKex_UNINSTALL" "KEX_StrongVersionSpoof" 0
+        WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\uninstall-service.exe\VxKex_UNINSTALL" "GlobalFlag" 0x00000100
+        WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\uninstall-service.exe\VxKex_UNINSTALL" "VerifierFlags" 0x80000000
+        WriteRegStr HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\uninstall-service.exe\VxKex_UNINSTALL" "VerifierDlls" "kexdll.dll"
+
+        DetailPrint "VxKex 配置成功（clash-verge.exe + 3个服务程序）"
     ${EndIf}
 FunctionEnd
 
@@ -907,7 +950,12 @@ Section Install
     File /a "/oname={{this}}" "{{@key}}"
   {{/each}}
 
-  ; VxKex 文件通过 Tauri resources 配置自动复制（使用 target 参数保持目录结构）
+  ; 手动复制 VxKex 文件（不使用 Tauri resources，避免文件锁定问题）
+  DetailPrint "正在复制 VxKex 文件..."
+  SetOutPath "$INSTDIR\vxkex"
+  File /a "vxkex\KexSetup.exe"
+  File /a "vxkex\configure-vxkex.ps1"
+  SetOutPath "$INSTDIR"
 
   !insertmacro StartVergeService
 
