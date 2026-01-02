@@ -106,32 +106,41 @@ jobs:
           New-Item -ItemType Directory -Force -Path $tempDir | Out-Null
           Expand $webview2Cab -F:* $tempDir
 
-          # CAB 解压后内部有嵌套目录，需要移动到正确位置
-          # 结构: webview2_temp/Microsoft.WebView2.../Microsoft.WebView2.../files
-          $nestedDir = Join-Path $tempDir $webview2Dir
-          $targetDir = Join-Path ".\src-tauri" $webview2Dir
+          # 分析 CAB 解压后的目录结构
+          Write-Host "分析解压后的目录结构..."
+          Get-ChildItem -Path $tempDir -Recurse -Depth 2 | Select-Object FullName
 
-          if (Test-Path (Join-Path $nestedDir $webview2Dir)) {
-            # 如果存在嵌套目录，从嵌套目录复制
-            Write-Host "检测到嵌套目录结构，正在修正..."
-            $sourceDir = Join-Path $nestedDir $webview2Dir
-            Copy-Item -Path $sourceDir -Destination $targetDir -Recurse -Force
-          } elseif (Test-Path $nestedDir) {
-            # 直接复制
-            Copy-Item -Path $nestedDir -Destination $targetDir -Recurse -Force
+          # CAB 解压后可能有多层嵌套，找到包含 msedgewebview2.exe 的目录
+          $targetDir = Join-Path ".\src-tauri" $webview2Dir
+          $msedgeExe = Get-ChildItem -Path $tempDir -Recurse -Filter "msedgewebview2.exe" | Select-Object -First 1
+
+          if ($msedgeExe) {
+            $sourceDir = $msedgeExe.DirectoryName
+            Write-Host "找到 WebView2 文件目录: $sourceDir"
+
+            # 确保目标目录存在
+            New-Item -ItemType Directory -Force -Path $targetDir | Out-Null
+
+            # 复制目录内容（不是目录本身）到目标
+            Copy-Item -Path "$sourceDir\*" -Destination $targetDir -Recurse -Force
+
+            Write-Host "✅ WebView2 文件已复制到: $targetDir"
           } else {
-            Write-Error "❌ WebView2 解压失败：找不到目录"
+            Write-Error "❌ 在解压的文件中找不到 msedgewebview2.exe"
+            Get-ChildItem -Path $tempDir -Recurse | Select-Object FullName
             exit 1
           }
 
-          # 验证解压结果 - 检查关键文件是否在正确位置
-          $msedgeExe = Join-Path $targetDir "msedgewebview2.exe"
-          if (Test-Path $msedgeExe) {
-            Write-Host "✅ WebView2 解压成功，msedgewebview2.exe 位于正确位置"
+          # 验证解压结果
+          $verifyExe = Join-Path $targetDir "msedgewebview2.exe"
+          if (Test-Path $verifyExe) {
+            Write-Host "✅ 验证成功：msedgewebview2.exe 位于正确位置"
+            Write-Host "目标目录内容:"
+            Get-ChildItem -Path $targetDir | Select-Object Name, Length | Format-Table
           } else {
-            Write-Host "当前目录结构:"
+            Write-Host "目标目录内容:"
             Get-ChildItem -Path $targetDir -Recurse | Select-Object FullName
-            Write-Error "❌ WebView2 目录结构不正确：msedgewebview2.exe 不在预期位置"
+            Write-Error "❌ 验证失败：msedgewebview2.exe 不在预期位置"
             exit 1
           }
 
