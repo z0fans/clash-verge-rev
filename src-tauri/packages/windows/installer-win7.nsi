@@ -876,9 +876,20 @@ Section Install
   ${EndIf}
 
   ; Delete old files before installation
-    ; Delete clash-verge.desktop
+  ; Delete clash-verge.desktop
   IfFileExists "$INSTDIR\Clash Verge.exe" 0 +2
     Delete "$INSTDIR\Clash Verge.exe"
+
+  ; 清理旧的 vxkex 文件（避免文件被占用导致安装失败）
+  DetailPrint "清理旧的 VxKex 文件..."
+  SetOverwrite on
+  IfFileExists "$INSTDIR\vxkex\*.*" 0 vxkex_clean_done
+    Delete /REBOOTOK "$INSTDIR\vxkex\KexSetup.exe"
+    Delete /REBOOTOK "$INSTDIR\vxkex\configure-vxkex.ps1"
+    RMDir /r /REBOOTOK "$INSTDIR\vxkex"
+  vxkex_clean_done:
+  ; 确保 vxkex 目录存在
+  CreateDirectory "$INSTDIR\vxkex"
   
   ; Copy main executable
   File "${MAINBINARYSRCPATH}"

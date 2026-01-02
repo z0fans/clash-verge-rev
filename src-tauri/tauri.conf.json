@@ -11,10 +11,10 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "resources": [
-      {"src": "resources/**", "target": "resources/"},
-      {"src": "vxkex/**", "target": "vxkex/"}
-    ],
+    "resources": {
+      "resources/": "resources/",
+      "vxkex/": "vxkex/"
+    },
     "publisher": "Clash Verge Rev",
     "externalBin": [
       "sidecar/verge-mihomo",

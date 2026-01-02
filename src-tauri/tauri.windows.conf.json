@@ -3,10 +3,10 @@
   "identifier": "io.github.clash-verge-rev.clash-verge-rev",
   "bundle": {
     "targets": ["nsis"],
-    "resources": [
-      {"src": "resources/**", "target": "resources/"},
-      {"src": "vxkex/**", "target": "vxkex/"}
-    ],
+    "resources": {
+      "resources/": "resources/",
+      "vxkex/": "vxkex/"
+    },
     "windows": {
       "certificateThumbprint": null,
       "digestAlgorithm": "sha256",
