@@ -101,52 +101,29 @@ jobs:
           # 下载 WebView2 CAB
           Invoke-WebRequest -Uri $webview2Url -OutFile $webview2Cab
 
-          # 解压到临时目录
-          Write-Host "解压 WebView2 运行时..."
-          $tempDir = ".\webview2_temp"
-          New-Item -ItemType Directory -Force -Path $tempDir | Out-Null
-          Expand $webview2Cab -F:* $tempDir
-
-          # 分析 CAB 解压后的目录结构
-          Write-Host "=== 分析解压后的目录结构 ==="
-          Get-ChildItem -Path $tempDir -Recurse -Depth 3 | Select-Object FullName
-
-          # 查找 msedgewebview2.exe 所在目录
-          $msedgeExe = Get-ChildItem -Path $tempDir -Recurse -Filter "msedgewebview2.exe" | Select-Object -First 1
-
-          if ($msedgeExe) {
-            $sourceDir = $msedgeExe.DirectoryName
-            Write-Host "找到 WebView2 文件目录: $sourceDir"
-
-            # 清理并创建目标目录
-            if (Test-Path $targetDir) {
-              Remove-Item -Path $targetDir -Recurse -Force
-            }
-            New-Item -ItemType Directory -Force -Path $targetDir | Out-Null
-
-            # 复制文件 - 只复制 msedgewebview2.exe 所在目录的内容
-            Write-Host "复制 WebView2 文件..."
-            Copy-Item -Path "$sourceDir\*" -Destination $targetDir -Recurse -Force
-
-            Write-Host "✅ WebView2 文件已复制到: $targetDir"
-          } else {
-            Write-Error "❌ 在解压的文件中找不到 msedgewebview2.exe"
-            Get-ChildItem -Path $tempDir -Recurse | Select-Object FullName
-            exit 1
+          # 清理目标目录
+          if (Test-Path $targetDir) {
+            Remove-Item -Path $targetDir -Recurse -Force
           }
 
-          # 验证目标目录结构 - 确保没有嵌套
-          Write-Host "=== 验证目标目录结构 ==="
-          $verifyExe = Join-Path $targetDir "msedgewebview2.exe"
-          $nestedDir = Join-Path $targetDir $webview2Dir
+          # 直接解压到 src-tauri 目录
+          # CAB 内部路径已经包含 Microsoft.WebView2.FixedVersionRuntime.109.0.1518.78.x64/
+          # 所以直接解压到 src-tauri 就会创建正确的目录结构
+          Write-Host "解压 WebView2 运行时到 src-tauri..."
+          Expand $webview2Cab -F:* ".\src-tauri"
 
-          # 检查是否存在嵌套目录
-          if (Test-Path $nestedDir) {
-            Write-Host "⚠️ 检测到嵌套目录，正在修正..."
-            $nestedExe = Join-Path $nestedDir "msedgewebview2.exe"
-            if (Test-Path $nestedExe) {
+          # 验证解压结果
+          Write-Host "=== 验证解压后的目录结构 ==="
+          $verifyExe = Join-Path $targetDir "msedgewebview2.exe"
+
+          if (Test-Path $verifyExe) {
+            Write-Host "✅ 验证成功：msedgewebview2.exe 位于正确位置: $verifyExe"
+
+            # 检查是否有嵌套目录（不应该有）
+            $nestedDir = Join-Path $targetDir $webview2Dir
+            if (Test-Path $nestedDir) {
+              Write-Host "⚠️ 检测到嵌套目录，正在修正..."
               # 将嵌套目录内容移动到上一级
-              Write-Host "将嵌套目录内容移动到正确位置..."
               Get-ChildItem -Path $nestedDir | ForEach-Object {
                 $destPath = Join-Path $targetDir $_.Name
                 if (Test-Path $destPath) {
@@ -154,34 +131,65 @@ jobs:
                 }
                 Move-Item -Path $_.FullName -Destination $targetDir -Force
               }
-              # 删除空的嵌套目录
               Remove-Item -Path $nestedDir -Force -ErrorAction SilentlyContinue
               Write-Host "✅ 嵌套目录已修正"
+            }
+
+            Write-Host "目标目录顶层内容:"
+            Get-ChildItem -Path $targetDir | Select-Object Name | Format-Table
+          } else {
+            # 如果直接解压没有放对位置，尝试查找并修正
+            Write-Host "⚠️ msedgewebview2.exe 不在预期位置，正在搜索..."
+            $msedgeExe = Get-ChildItem -Path ".\src-tauri" -Recurse -Filter "msedgewebview2.exe" | Select-Object -First 1
+
+            if ($msedgeExe) {
+              $sourceDir = $msedgeExe.DirectoryName
+              Write-Host "找到 WebView2 文件目录: $sourceDir"
+
+              # 如果找到的目录不是目标目录，需要移动文件
+              if ($sourceDir -ne (Resolve-Path $targetDir -ErrorAction SilentlyContinue)) {
+                Write-Host "移动文件到正确位置..."
+                New-Item -ItemType Directory -Force -Path $targetDir | Out-Null
+                Get-ChildItem -Path $sourceDir | ForEach-Object {
+                  Move-Item -Path $_.FullName -Destination $targetDir -Force
+                }
+                # 清理源目录
+                $parentDir = Split-Path $sourceDir -Parent
+                if ($parentDir -ne ".\src-tauri" -and $parentDir -ne "src-tauri") {
+                  Remove-Item -Path $sourceDir -Force -ErrorAction SilentlyContinue
+                }
+              }
+            } else {
+              Write-Host "=== 调试：src-tauri 目录结构 ==="
+              Get-ChildItem -Path ".\src-tauri" -Recurse -Depth 3 | Select-Object FullName
+              Write-Error "❌ 在解压的文件中找不到 msedgewebview2.exe"
+              exit 1
             }
           }
 
           # 最终验证
-          if (Test-Path $verifyExe) {
-            Write-Host "✅ 验证成功：msedgewebview2.exe 位于正确位置"
-            Write-Host "目标目录内容:"
-            Get-ChildItem -Path $targetDir | Select-Object Name, Length | Format-Table
+          $finalVerify = Join-Path $targetDir "msedgewebview2.exe"
+          $finalNestedCheck = Join-Path $targetDir $webview2Dir
 
-            # 确保没有嵌套
-            $finalNestedCheck = Join-Path $targetDir $webview2Dir
-            if (Test-Path $finalNestedCheck) {
-              Write-Error "❌ 仍然存在嵌套目录!"
-              exit 1
-            }
-          } else {
-            Write-Host "目标目录内容:"
+          if (-not (Test-Path $finalVerify)) {
+            Write-Error "❌ 最终验证失败：msedgewebview2.exe 不存在"
             Get-ChildItem -Path $targetDir -Recurse | Select-Object FullName
-            Write-Error "❌ 验证失败：msedgewebview2.exe 不在预期位置"
             exit 1
           }
 
-          # 清理临时文件
+          if (Test-Path $finalNestedCheck) {
+            Write-Error "❌ 最终验证失败：仍然存在嵌套目录"
+            exit 1
+          }
+
+          Write-Host "✅ WebView2 运行时准备完成"
+          Write-Host "最终目录结构验证："
+          Write-Host "  - 目标目录: $targetDir"
+          Write-Host "  - msedgewebview2.exe: 存在"
+          Write-Host "  - 嵌套目录: 不存在"
+
+          # 清理 CAB 文件
           Remove-Item $webview2Cab -Force
-          Remove-Item $tempDir -Recurse -Force
 
       - name: Prepare Win7 Configuration
         run: |
