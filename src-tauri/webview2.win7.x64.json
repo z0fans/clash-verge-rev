@@ -13,7 +13,7 @@
       "timestampUrl": "",
       "webviewInstallMode": {
         "type": "fixedRuntime",
-        "path": "./"
+        "path": "./webview2/"
       },
       "nsis": {
         "displayLanguageSelector": true,

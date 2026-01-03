@@ -97,13 +97,17 @@ jobs:
           $webview2Cab = ".\Microsoft.WebView2.FixedVersionRuntime.109.0.1518.78.x64.cab"
           $tempExtractDir = ".\webview2_temp"
 
-          # 目标目录直接放在 src-tauri 根目录，path 配置为 "./"
-          $targetDir = ".\src-tauri"
+          # 目标目录使用简单名称，避免 Tauri bundler 嵌套问题
+          $targetDir = ".\src-tauri\webview2"
 
           # 下载 WebView2 CAB
           Invoke-WebRequest -Uri $webview2Url -OutFile $webview2Cab
 
-          # 清理临时目录
+          # 清理已存在的目录
+          if (Test-Path $targetDir) {
+            Write-Host "清理已存在的目标目录..."
+            Remove-Item -Path $targetDir -Recurse -Force
+          }
           if (Test-Path $tempExtractDir) {
             Remove-Item -Path $tempExtractDir -Recurse -Force
           }
@@ -126,22 +130,30 @@ jobs:
           $sourceDir = $msedgeExe.DirectoryName
           Write-Host "WebView2 文件源目录: $sourceDir"
 
-          # 直接复制 WebView2 文件到 src-tauri 根目录
+          # 创建目标目录并复制文件内容（不复制目录本身）
+          New-Item -ItemType Directory -Force -Path $targetDir | Out-Null
           Write-Host "复制 WebView2 文件到: $targetDir"
           Copy-Item -Path "$sourceDir\*" -Destination $targetDir -Recurse -Force
 
           # 验证复制结果
           $verifyExe = Join-Path $targetDir "msedgewebview2.exe"
           if (Test-Path $verifyExe) {
-            Write-Host "✅ msedgewebview2.exe 已复制到 src-tauri 根目录"
+            Write-Host "✅ msedgewebview2.exe 已复制到目标位置"
           } else {
             Write-Error "❌ msedgewebview2.exe 不在目标位置"
-            Get-ChildItem -Path $targetDir | Select-Object Name
+            Get-ChildItem -Path $targetDir -Recurse | Select-Object FullName
             exit 1
           }
 
-          Write-Host "src-tauri 目录内容:"
-          Get-ChildItem -Path $targetDir -File | Select-Object -First 15 Name | Format-Table
+          # 检查是否有嵌套目录
+          $nestedCheck = Join-Path $targetDir "webview2"
+          if (Test-Path $nestedCheck) {
+            Write-Error "❌ 存在嵌套目录: $nestedCheck"
+            exit 1
+          }
+
+          Write-Host "目标目录内容 (前10项):"
+          Get-ChildItem -Path $targetDir | Select-Object -First 10 Name | Format-Table
 
           # 清理临时文件
           Remove-Item -Path $tempExtractDir -Recurse -Force
