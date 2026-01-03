@@ -95,7 +95,7 @@ jobs:
           Write-Host "下载 WebView2 固定运行时..."
           $webview2Url = "https://github.com/westinyang/WebView2RuntimeArchive/releases/download/109.0.1518.78/Microsoft.WebView2.FixedVersionRuntime.109.0.1518.78.x64.cab"
           $webview2Cab = ".\Microsoft.WebView2.FixedVersionRuntime.109.0.1518.78.x64.cab"
-          $webview2Dir = "Microsoft.WebView2.FixedVersionRuntime.109.0.1518.78.x64"
+          $webview2Dir = "WebView2Runtime"  # 使用简短目录名避免嵌套问题
           $targetDir = Join-Path ".\src-tauri" $webview2Dir
           $tempExtractDir = ".\webview2_temp"
 
