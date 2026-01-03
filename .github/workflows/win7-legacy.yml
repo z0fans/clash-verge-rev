@@ -97,8 +97,8 @@ jobs:
           $webview2Cab = ".\Microsoft.WebView2.FixedVersionRuntime.109.0.1518.78.x64.cab"
           $tempExtractDir = ".\webview2_temp"
 
-          # 目标目录使用简单名称，避免 Tauri bundler 嵌套问题
-          $targetDir = ".\src-tauri\webview2"
+          # 目标目录使用不同的名称，避免与源目录名相同导致嵌套
+          $targetDir = ".\src-tauri\webview2run"
 
           # 下载 WebView2 CAB
           Invoke-WebRequest -Uri $webview2Url -OutFile $webview2Cab
@@ -146,7 +146,7 @@ jobs:
           }
 
           # 检查是否有嵌套目录
-          $nestedCheck = Join-Path $targetDir "webview2"
+          $nestedCheck = Join-Path $targetDir "webview2run"
           if (Test-Path $nestedCheck) {
             Write-Error "❌ 存在嵌套目录: $nestedCheck"
             exit 1
