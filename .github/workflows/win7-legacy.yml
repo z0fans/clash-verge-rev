@@ -95,74 +95,51 @@ jobs:
           Write-Host "下载 WebView2 固定运行时..."
           $webview2Url = "https://github.com/westinyang/WebView2RuntimeArchive/releases/download/109.0.1518.78/Microsoft.WebView2.FixedVersionRuntime.109.0.1518.78.x64.cab"
           $webview2Cab = ".\Microsoft.WebView2.FixedVersionRuntime.109.0.1518.78.x64.cab"
-          $webview2Dir = "WebView2Runtime"  # 使用简短目录名避免嵌套问题
-          $targetDir = Join-Path ".\src-tauri" $webview2Dir
-          $tempExtractDir = ".\webview2_temp"
+
+          # 直接解压到 src-tauri 目录，CAB 会自动创建正确的目录结构
+          # CAB 文件内部包含 Microsoft.WebView2.FixedVersionRuntime.109.0.1518.78.x64 目录
+          $targetBaseDir = ".\src-tauri"
+          $expectedDir = Join-Path $targetBaseDir "Microsoft.WebView2.FixedVersionRuntime.109.0.1518.78.x64"
 
           # 下载 WebView2 CAB
           Invoke-WebRequest -Uri $webview2Url -OutFile $webview2Cab
 
-          # 清理目标目录和临时目录
-          if (Test-Path $targetDir) {
-            Remove-Item -Path $targetDir -Recurse -Force
-          }
-          if (Test-Path $tempExtractDir) {
-            Remove-Item -Path $tempExtractDir -Recurse -Force
+          # 清理已存在的目标目录
+          if (Test-Path $expectedDir) {
+            Write-Host "清理已存在的 WebView2 目录..."
+            Remove-Item -Path $expectedDir -Recurse -Force
           }
 
-          # 创建临时目录并解压到临时目录
-          New-Item -ItemType Directory -Force -Path $tempExtractDir | Out-Null
-          Write-Host "解压 WebView2 运行时到临时目录..."
-          Expand $webview2Cab -F:* $tempExtractDir
+          # 直接解压到 src-tauri 目录
+          Write-Host "解压 WebView2 运行时..."
+          Expand $webview2Cab -F:* $targetBaseDir
 
-          # 显示临时目录结构用于调试
-          Write-Host "=== 临时目录解压结果 ==="
-          Get-ChildItem -Path $tempExtractDir -Recurse -Depth 2 | Select-Object FullName | Format-Table
-
-          # 查找 msedgewebview2.exe 的实际位置
-          $msedgeExe = Get-ChildItem -Path $tempExtractDir -Recurse -Filter "msedgewebview2.exe" | Select-Object -First 1
-
-          if (-not $msedgeExe) {
-            Write-Error "❌ 在解压的文件中找不到 msedgewebview2.exe"
+          # 验证解压结果
+          Write-Host "=== 解压结果验证 ==="
+          if (Test-Path $expectedDir) {
+            Write-Host "✅ WebView2 目录已创建: $expectedDir"
+            $msedgeExe = Join-Path $expectedDir "msedgewebview2.exe"
+            if (Test-Path $msedgeExe) {
+              Write-Host "✅ msedgewebview2.exe 存在"
+            } else {
+              Write-Error "❌ msedgewebview2.exe 不存在"
+              Get-ChildItem -Path $expectedDir -Recurse | Select-Object FullName
+              exit 1
+            }
+          } else {
+            Write-Error "❌ WebView2 目录不存在: $expectedDir"
+            Write-Host "src-tauri 目录内容:"
+            Get-ChildItem -Path $targetBaseDir | Format-Table Name
             exit 1
           }
 
-          $sourceDir = $msedgeExe.DirectoryName
-          Write-Host "找到 WebView2 文件目录: $sourceDir"
-
-          # 创建目标目录并移动所有文件
-          New-Item -ItemType Directory -Force -Path $targetDir | Out-Null
-          Write-Host "移动 WebView2 文件到目标目录: $targetDir"
-
-          # 使用通配符移动目录内容，避免移动目录本身导致嵌套
-          Move-Item -Path (Join-Path $sourceDir "*") -Destination $targetDir -Force
-
-          # 清理临时目录
-          Remove-Item -Path $tempExtractDir -Recurse -Force
-
-          # 最终验证：检查 msedgewebview2.exe 是否在正确位置
-          $finalVerify = Join-Path $targetDir "msedgewebview2.exe"
-          $nestedCheck = Join-Path $targetDir $webview2Dir
-
-          if (-not (Test-Path $finalVerify)) {
-            Write-Error "❌ 最终验证失败：msedgewebview2.exe 不在目标位置"
-            Write-Host "目标目录内容："
-            Get-ChildItem -Path $targetDir -Recurse | Select-Object FullName
-            exit 1
-          }
-
-          if (Test-Path $nestedCheck) {
-            Write-Error "❌ 最终验证失败：存在嵌套目录 $nestedCheck"
-            exit 1
-          }
-
-          Write-Host "✅ WebView2 运行时准备完成"
-          Write-Host "目标目录: $targetDir"
-          Write-Host "目标目录内容 (前10项):"
-          Get-ChildItem -Path $targetDir | Select-Object -First 10 Name | Format-Table
+          Write-Host "目录内容 (前10项):"
+          Get-ChildItem -Path $expectedDir | Select-Object -First 10 Name | Format-Table
 
           # 清理 CAB 文件
           Remove-Item $webview2Cab -Force
+
+          Write-Host "✅ WebView2 运行时准备完成"
 
       - name: Prepare Win7 Configuration
         run: |
