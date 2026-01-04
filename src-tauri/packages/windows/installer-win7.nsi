@@ -953,6 +953,17 @@ Section Install
   ; VxKex 文件已通过 Tauri resources 配置自动复制到 $INSTDIR\vxkex\
   ; 无需手动复制，resources 配置: "vxkex/": "vxkex/"
 
+  ; 修复 WebView2 fixedRuntime 嵌套目录问题
+  ; Tauri bundler 会创建 webview2run\webview2run 嵌套结构，需要修复
+  ${If} ${FileExists} "$INSTDIR\webview2run\webview2run\*.*"
+    DetailPrint "修复 WebView2 目录嵌套..."
+    ; 将嵌套目录内容复制到正确位置
+    CopyFiles /SILENT "$INSTDIR\webview2run\webview2run\*.*" "$INSTDIR\webview2run"
+    ; 删除嵌套目录
+    RMDir /r "$INSTDIR\webview2run\webview2run"
+    DetailPrint "WebView2 目录修复完成"
+  ${EndIf}
+
   !insertmacro StartVergeService
 
   ; Create uninstaller
