@@ -47,7 +47,7 @@ jobs:
       - name: Rust Cache
         uses: Swatinem/rust-cache@v2
         with:
-          workspaces: . -> target
+          workspaces: src-tauri
           cache-all-crates: true
           cache-on-failure: true
 
@@ -92,7 +92,16 @@ jobs:
           releaseBody: "More new features are now supported."
           tauriScript: pnpm
           args: --target ${{ matrix.target }}
-          includeUpdaterJson: true
+
+      - name: Upload Windows installers
+        if: matrix.os == 'windows-latest'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ env.VERSION }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          files: |
+            src-tauri/target/${{ matrix.target }}/release/bundle/nsis/*-setup.exe
+            src-tauri/target/${{ matrix.target }}/release/bundle/nsis/*-setup.exe.sig
 
   release-for-linux-arm:
     strategy:
@@ -119,7 +128,7 @@ jobs:
       - name: Rust Cache
         uses: Swatinem/rust-cache@v2
         with:
-          workspaces: . -> target
+          workspaces: src-tauri
           cache-all-crates: true
 
       - name: Install Node
@@ -215,8 +224,8 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           fail_on_unmatched_files: false
           files: |
-            target/${{ matrix.target }}/release/bundle/deb/*.deb
-            target/${{ matrix.target }}/release/bundle/rpm/*.rpm
+            src-tauri/target/${{ matrix.target }}/release/bundle/deb/*.deb
+            src-tauri/target/${{ matrix.target }}/release/bundle/rpm/*.rpm
 
   release-for-fixed-webview2:
     strategy:
@@ -240,7 +249,7 @@ jobs:
       - name: Rust Cache
         uses: Swatinem/rust-cache@v2
         with:
-          workspaces: . -> target
+          workspaces: src-tauri
           cache-all-crates: true
           cache-on-failure: true
 
@@ -286,19 +295,19 @@ jobs:
 
       - name: Rename
         run: |
-          $files = Get-ChildItem ".\target\${{ matrix.target }}\release\bundle\nsis\*-setup.exe"
+          $files = Get-ChildItem ".\src-tauri\target\${{ matrix.target }}\release\bundle\nsis\*-setup.exe"
           foreach ($file in $files) {
             $newName = $file.Name -replace "-setup\.exe$", "_fixed_webview2-setup.exe"
             Rename-Item $file.FullName $newName
           }
 
-          $files = Get-ChildItem ".\target\${{ matrix.target }}\release\bundle\nsis\*.nsis.zip"
+          $files = Get-ChildItem ".\src-tauri\target\${{ matrix.target }}\release\bundle\nsis\*.nsis.zip"
           foreach ($file in $files) {
             $newName = $file.Name -replace "-setup\.nsis\.zip$", "_fixed_webview2-setup.nsis.zip"
             Rename-Item $file.FullName $newName
           }
 
-          $files = Get-ChildItem ".\target\${{ matrix.target }}\release\bundle\nsis\*-setup.exe.sig"
+          $files = Get-ChildItem ".\src-tauri\target\${{ matrix.target }}\release\bundle\nsis\*-setup.exe.sig"
           foreach ($file in $files) {
             $newName = $file.Name -replace "-setup\.exe\.sig$", "_fixed_webview2-setup.exe.sig"
             Rename-Item $file.FullName $newName
@@ -312,7 +321,7 @@ jobs:
           body: "More new features are now supported."
           token: ${{ secrets.GITHUB_TOKEN }}
           fail_on_unmatched_files: false
-          files: target/${{ matrix.target }}/release/bundle/nsis/*setup*
+          files: src-tauri/target/${{ matrix.target }}/release/bundle/nsis/*setup*
 
       - name: Portable Bundle
         run: pnpm portable-fixed-webview2 ${{ matrix.target }}
