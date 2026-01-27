@@ -99,6 +99,7 @@ jobs:
         with:
           tag_name: v${{ env.VERSION }}
           token: ${{ secrets.GITHUB_TOKEN }}
+          fail_on_unmatched_files: true
           files: |
             src-tauri/target/${{ matrix.target }}/release/bundle/nsis/*-setup.exe
             src-tauri/target/${{ matrix.target }}/release/bundle/nsis/*-setup.exe.sig
