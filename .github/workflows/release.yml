@@ -105,6 +105,7 @@ jobs:
             src-tauri/target/${{ matrix.target }}/release/bundle/nsis/*-setup.exe.sig
 
   release-for-linux-arm:
+    needs: [release]
     strategy:
       fail-fast: false
       matrix:
@@ -229,6 +230,7 @@ jobs:
             src-tauri/target/${{ matrix.target }}/release/bundle/rpm/*.rpm
 
   release-for-fixed-webview2:
+    needs: [release]
     strategy:
       fail-fast: false
       matrix:
