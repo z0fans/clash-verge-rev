@@ -76,7 +76,7 @@ jobs:
 
       - name: Get Version
         run: |
-          echo "VERSION=$(cat package.json | jq -r '.version')" >> $GITHUB_ENV
+          echo "VERSION=$(cat package.json | jq -r '.version')" >> $env:GITHUB_ENV
 
       - name: Tauri build
         id: build
