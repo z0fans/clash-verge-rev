@@ -10,13 +10,22 @@ function getVersionFromTag(tagName) {
   return tagName.startsWith("v") ? tagName.slice(1) : tagName;
 }
 
-async function resolveUpdater() {
-  if (!process.env.GITHUB_TOKEN) {
-    throw new Error("GITHUB_TOKEN is required");
-  }
+async function resolveLatestStableRelease(github, options, preferredTag) {
+  const stableRegex = /^v\d+\.\d+\.\d+$/;
 
-  const options = { owner: context.repo.owner, repo: context.repo.repo };
-  const github = getOctokit(process.env.GITHUB_TOKEN);
+  if (preferredTag && stableRegex.test(preferredTag)) {
+    try {
+      const response = await github.rest.repos.getReleaseByTag({
+        ...options,
+        tag: preferredTag,
+      });
+      return { tagName: preferredTag, release: response.data };
+    } catch (error) {
+      if (error.status !== 404) {
+        throw error;
+      }
+    }
+  }
 
   const tags = [];
   let page = 1;
@@ -36,20 +45,47 @@ async function resolveUpdater() {
     page++;
   }
 
-  const tag = tags.find((t) => /^v\d+\.\d+\.\d+$/.test(t.name));
-  if (!tag) {
-    throw new Error("No stable tag found");
+  for (const item of tags) {
+    if (!stableRegex.test(item.name)) {
+      continue;
+    }
+
+    try {
+      const response = await github.rest.repos.getReleaseByTag({
+        ...options,
+        tag: item.name,
+      });
+      return { tagName: item.name, release: response.data };
+    } catch (error) {
+      if (error.status !== 404) {
+        throw error;
+      }
+    }
   }
 
-  const { data: latestRelease } = await github.rest.repos.getReleaseByTag({
-    ...options,
-    tag: tag.name,
-  });
+  throw new Error("No stable release found for updater-fixed-webview2");
+}
+
+async function resolveUpdater() {
+  if (!process.env.GITHUB_TOKEN) {
+    throw new Error("GITHUB_TOKEN is required");
+  }
+
+  const options = { owner: context.repo.owner, repo: context.repo.repo };
+  const github = getOctokit(process.env.GITHUB_TOKEN);
+
+  const preferredTag =
+    process.env.GITHUB_REF_NAME || process.env.GITHUB_REF || "";
+  const { tagName, release: latestRelease } = await resolveLatestStableRelease(
+    github,
+    options,
+    preferredTag,
+  );
 
   const updateData = {
-    version: getVersionFromTag(tag.name),
-    name: tag.name,
-    notes: await resolveUpdateLog(tag.name).catch(() =>
+    version: getVersionFromTag(tagName),
+    name: tagName,
+    notes: await resolveUpdateLog(tagName).catch(() =>
       resolveUpdateLogDefault().catch(() => "No changelog available"),
     ),
     pub_date: new Date().toISOString(),
