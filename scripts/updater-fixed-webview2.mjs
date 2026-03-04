@@ -1,32 +1,45 @@
 import fetch from "node-fetch";
 import { getOctokit, context } from "@actions/github";
-import { resolveUpdateLog } from "./updatelog.mjs";
+import { resolveUpdateLog, resolveUpdateLogDefault } from "./updatelog.mjs";
 
 const UPDATE_TAG_NAME = "updater";
 const UPDATE_JSON_FILE = "update-fixed-webview2.json";
 const UPDATE_JSON_PROXY = "update-fixed-webview2-proxy.json";
 
-/// generate update.json
-/// upload to update tag's release asset
+function getVersionFromTag(tagName) {
+  return tagName.startsWith("v") ? tagName.slice(1) : tagName;
+}
+
 async function resolveUpdater() {
-  if (process.env.GITHUB_TOKEN === undefined) {
+  if (!process.env.GITHUB_TOKEN) {
     throw new Error("GITHUB_TOKEN is required");
   }
 
   const options = { owner: context.repo.owner, repo: context.repo.repo };
   const github = getOctokit(process.env.GITHUB_TOKEN);
 
-  const { data: tags } = await github.rest.repos.listTags({
-    ...options,
-    per_page: 10,
-    page: 1,
-  });
+  const tags = [];
+  let page = 1;
+  const perPage = 100;
 
-  // get the latest publish tag
-  const tag = tags.find((t) => t.name.startsWith("v"));
+  while (true) {
+    const { data: pageTags } = await github.rest.repos.listTags({
+      ...options,
+      per_page: perPage,
+      page,
+    });
 
-  console.log(tag);
-  console.log();
+    tags.push(...pageTags);
+    if (pageTags.length < perPage) {
+      break;
+    }
+    page++;
+  }
+
+  const tag = tags.find((t) => /^v\d+\.\d+\.\d+$/.test(t.name));
+  if (!tag) {
+    throw new Error("No stable tag found");
+  }
 
   const { data: latestRelease } = await github.rest.repos.getReleaseByTag({
     ...options,
@@ -34,8 +47,11 @@ async function resolveUpdater() {
   });
 
   const updateData = {
+    version: getVersionFromTag(tag.name),
     name: tag.name,
-    notes: await resolveUpdateLog(tag.name), // use updatelog.md
+    notes: await resolveUpdateLog(tag.name).catch(() =>
+      resolveUpdateLogDefault().catch(() => "No changelog available"),
+    ),
     pub_date: new Date().toISOString(),
     platforms: {
       "windows-x86_64": { signature: "", url: "" },
@@ -49,33 +65,33 @@ async function resolveUpdater() {
     const { name, browser_download_url } = asset;
 
     // win64 url
-    if (name.endsWith("x64_fixed_webview2-setup.nsis.zip")) {
+    if (name.endsWith("x64_fixed_webview2-setup.exe")) {
       updateData.platforms["windows-x86_64"].url = browser_download_url;
     }
     // win64 signature
-    if (name.endsWith("x64_fixed_webview2-setup.nsis.zip.sig")) {
+    if (name.endsWith("x64_fixed_webview2-setup.exe.sig")) {
       const sig = await getSignature(browser_download_url);
       updateData.platforms["windows-x86_64"].signature = sig;
     }
 
     // win32 url
-    if (name.endsWith("x86_fixed_webview2-setup.nsis.zip")) {
+    if (name.endsWith("x86_fixed_webview2-setup.exe")) {
       updateData.platforms["windows-x86"].url = browser_download_url;
       updateData.platforms["windows-i686"].url = browser_download_url;
     }
     // win32 signature
-    if (name.endsWith("x86_fixed_webview2-setup.nsis.zip.sig")) {
+    if (name.endsWith("x86_fixed_webview2-setup.exe.sig")) {
       const sig = await getSignature(browser_download_url);
       updateData.platforms["windows-x86"].signature = sig;
       updateData.platforms["windows-i686"].signature = sig;
     }
 
     // win arm url
-    if (name.endsWith("arm64_fixed_webview2-setup.nsis.zip")) {
+    if (name.endsWith("arm64_fixed_webview2-setup.exe")) {
       updateData.platforms["windows-aarch64"].url = browser_download_url;
     }
     // win arm signature
-    if (name.endsWith("arm64_fixed_webview2-setup.nsis.zip.sig")) {
+    if (name.endsWith("arm64_fixed_webview2-setup.exe.sig")) {
       const sig = await getSignature(browser_download_url);
       updateData.platforms["windows-aarch64"].signature = sig;
     }
@@ -87,11 +103,15 @@ async function resolveUpdater() {
   // maybe should test the signature as well
   // delete the null field
   Object.entries(updateData.platforms).forEach(([key, value]) => {
-    if (!value.url) {
+    if (!value.url || !value.signature) {
       console.log(`[Error]: failed to parse release for "${key}"`);
       delete updateData.platforms[key];
     }
   });
+
+  if (Object.keys(updateData.platforms).length === 0) {
+    throw new Error("No fixed-webview2 platform assets were resolved");
+  }
 
   // 生成一个代理github的更新文件
   // 使用 https://hub.fastgit.xyz/ 做github资源的加速
@@ -107,10 +127,27 @@ async function resolveUpdater() {
   });
 
   // update the update.json
-  const { data: updateRelease } = await github.rest.repos.getReleaseByTag({
-    ...options,
-    tag: UPDATE_TAG_NAME,
-  });
+  let updateRelease;
+  try {
+    const response = await github.rest.repos.getReleaseByTag({
+      ...options,
+      tag: UPDATE_TAG_NAME,
+    });
+    updateRelease = response.data;
+  } catch (error) {
+    if (error.status !== 404) {
+      throw error;
+    }
+
+    const created = await github.rest.repos.createRelease({
+      ...options,
+      tag_name: UPDATE_TAG_NAME,
+      name: "Auto-update Stable Channel",
+      body: "This release contains the update information for stable channel.",
+      prerelease: false,
+    });
+    updateRelease = created.data;
+  }
 
   // delete the old assets
   for (let asset of updateRelease.assets) {
@@ -151,7 +188,14 @@ async function getSignature(url) {
     headers: { "Content-Type": "application/octet-stream" },
   });
 
+  if (!response.ok) {
+    throw new Error(`Failed to fetch signature: ${response.status} ${url}`);
+  }
+
   return response.text();
 }
 
-resolveUpdater().catch(console.error);
+resolveUpdater().catch((error) => {
+  console.error(error);
+  process.exit(1);
+});

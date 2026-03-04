@@ -307,13 +307,7 @@ async function resolveResource(binInfo) {
   }
 
   if (localPath) {
-    await fs.copyFile(localPath, targetPath, (err) => {
-      if (err) {
-        console.error("Error copying file:", err);
-      } else {
-        console.log("File was copied successfully");
-      }
-    });
+    await fsp.copyFile(localPath, targetPath);
     log_debug(`copy file finished: "${localPath}"`);
   }
 
@@ -340,6 +334,11 @@ async function resolveResource(binInfo) {
     method: "GET",
     headers: { "Content-Type": "application/octet-stream" },
   });
+
+  if (!response.ok) {
+    throw new Error(`download failed: ${response.status} ${url}`);
+  }
+
   const buffer = await response.arrayBuffer();
   await fsp.writeFile(path, new Uint8Array(buffer));
 

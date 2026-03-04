@@ -4,6 +4,20 @@ import path from "path";
 
 const UPDATE_LOG = "UPDATELOG.md";
 
+function resolveUpdateLogPath(cwd) {
+  const rootFile = path.join(cwd, UPDATE_LOG);
+  if (fs.existsSync(rootFile)) {
+    return rootFile;
+  }
+
+  const docFile = path.join(cwd, "doc", UPDATE_LOG);
+  if (fs.existsSync(docFile)) {
+    return docFile;
+  }
+
+  return rootFile;
+}
+
 // parse the UPDATELOG.md
 export async function resolveUpdateLog(tag) {
   const cwd = process.cwd();
@@ -11,7 +25,7 @@ export async function resolveUpdateLog(tag) {
   const reTitle = /^## v[\d\.]+/;
   const reEnd = /^---/;
 
-  const file = path.join(cwd, UPDATE_LOG);
+  const file = resolveUpdateLogPath(cwd);
 
   if (!fs.existsSync(file)) {
     throw new Error("could not found UPDATELOG.md");
@@ -46,7 +60,7 @@ export async function resolveUpdateLog(tag) {
 
 export async function resolveUpdateLogDefault() {
   const cwd = process.cwd();
-  const file = path.join(cwd, UPDATE_LOG);
+  const file = resolveUpdateLogPath(cwd);
 
   if (!fs.existsSync(file)) {
     throw new Error("could not found UPDATELOG.md");
