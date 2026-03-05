@@ -1,5 +1,5 @@
 {
-  "version": "2.3.0",
+  "version": "2.3.1",
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "bundle": {
     "active": true,
@@ -31,8 +31,7 @@
     "updater": {
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDc2MkFDNzQ3QTBERTNGOTEKUldTUlA5NmdSOGNxZHNCOGxlYnVJdndKbUJnaVBwd1RkMjBDRzV1M3llZlJOSlN3R1M3Q1AzVngK",
       "endpoints": [
-        "https://github.com/z0fans/clash-verge-rev/releases/download/updater/update.json",
-        "https://gh-proxy.com/https://github.com/z0fans/clash-verge-rev/releases/download/updater/update-proxy.json"
+        "https://github.com/z0fans/clash-verge-rev/releases/download/updater/update.json"
       ],
       "windows": {
         "installMode": "basicUi"
