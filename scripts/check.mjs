@@ -13,6 +13,8 @@ import { glob } from "glob";
 const cwd = process.cwd();
 const TEMP_DIR = path.join(cwd, "node_modules/.verge");
 const FORCE = process.argv.includes("--force");
+const DOWNLOAD_RETRY_MAX = 3;
+const DOWNLOAD_RETRY_BASE_MS = 2000;
 
 const PLATFORM_MAP = {
   "x86_64-pc-windows-msvc": "win32",
@@ -316,7 +318,8 @@ async function resolveResource(binInfo) {
 
 /**
  * download file and save to `path`
- */ async function downloadFile(url, path) {
+ */
+async function downloadFile(url, path) {
   const options = {};
 
   const httpProxy =
@@ -329,20 +332,55 @@ async function resolveResource(binInfo) {
     options.agent = new HttpsProxyAgent(httpProxy);
   }
 
-  const response = await fetch(url, {
-    ...options,
-    method: "GET",
-    headers: { "Content-Type": "application/octet-stream" },
-  });
+  for (let attempt = 1; attempt <= DOWNLOAD_RETRY_MAX; attempt++) {
+    try {
+      const response = await fetch(url, {
+        ...options,
+        method: "GET",
+        headers: { "Content-Type": "application/octet-stream" },
+      });
 
-  if (!response.ok) {
-    throw new Error(`download failed: ${response.status} ${url}`);
+      if (!response.ok) {
+        const retryableStatus =
+          response.status === 408 ||
+          response.status === 429 ||
+          response.status >= 500;
+
+        if (retryableStatus && attempt < DOWNLOAD_RETRY_MAX) {
+          const delay = DOWNLOAD_RETRY_BASE_MS * attempt;
+          log_error(
+            `download failed (attempt ${attempt}/${DOWNLOAD_RETRY_MAX}): ${response.status} ${url}; retrying in ${delay}ms`,
+          );
+          await new Promise((resolve) => setTimeout(resolve, delay));
+          continue;
+        }
+
+        throw new Error(`download failed: ${response.status} ${url}`);
+      }
+
+      const buffer = await response.arrayBuffer();
+      await fsp.writeFile(path, new Uint8Array(buffer));
+      log_success(`download finished: ${url}`);
+      return;
+    } catch (error) {
+      const message = error?.message || String(error);
+      const retryableNetworkError =
+        /ECONNRESET|ETIMEDOUT|EAI_AGAIN|ENOTFOUND|socket hang up|network|fetch failed/i.test(
+          message,
+        );
+
+      if (retryableNetworkError && attempt < DOWNLOAD_RETRY_MAX) {
+        const delay = DOWNLOAD_RETRY_BASE_MS * attempt;
+        log_error(
+          `download request error (attempt ${attempt}/${DOWNLOAD_RETRY_MAX}): ${message}; retrying in ${delay}ms`,
+        );
+        await new Promise((resolve) => setTimeout(resolve, delay));
+        continue;
+      }
+
+      throw error;
+    }
   }
-
-  const buffer = await response.arrayBuffer();
-  await fsp.writeFile(path, new Uint8Array(buffer));
-
-  log_success(`download finished: ${url}`);
 }
 
 // SimpleSC.dll
