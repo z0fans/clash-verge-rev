@@ -206,9 +206,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: alpha
-          name: "Clash Verge Rev Alpha"
           body_path: release.txt
-          prerelease: true
           token: ${{ secrets.GITHUB_TOKEN }}
           generate_release_notes: true
 
@@ -287,7 +285,7 @@ jobs:
         with:
           tagName: alpha
           releaseName: "Clash Verge Rev Alpha"
-          releaseBody: "More new features are now supported."
+          generateReleaseNotes: true
           releaseDraft: false
           prerelease: true
           tauriScript: pnpm
@@ -417,8 +415,6 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: alpha
-          name: "Clash Verge Rev Alpha"
-          prerelease: true
           token: ${{ secrets.GITHUB_TOKEN }}
           files: |
             src-tauri/target/${{ matrix.target }}/release/bundle/deb/*.deb
@@ -512,8 +508,6 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: alpha
-          name: "Clash Verge Rev Alpha"
-          prerelease: true
           token: ${{ secrets.GITHUB_TOKEN }}
           files: src-tauri/target/${{ matrix.target }}/release/bundle/nsis/*setup*
 

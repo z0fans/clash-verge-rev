@@ -1,6 +1,5 @@
 import fetch from "node-fetch";
 import { getOctokit, context } from "@actions/github";
-import { resolveUpdateLog, resolveUpdateLogDefault } from "./updatelog.mjs";
 
 // Add stable update JSON filenames
 const UPDATE_TAG_NAME = "updater";
@@ -13,6 +12,14 @@ const ALPHA_UPDATE_JSON_PROXY = "update-proxy.json";
 
 function getVersionFromTag(tagName) {
   return tagName.startsWith("v") ? tagName.slice(1) : tagName;
+}
+
+function resolveReleaseNotes(releaseBody) {
+  if (releaseBody && releaseBody.trim()) {
+    return releaseBody.trim();
+  }
+
+  return "No changelog available";
 }
 
 function normalizeRefTag(refValue = "") {
@@ -169,9 +176,7 @@ async function processRelease(
 
     const updateData = {
       version: getVersionFromTag(tag.name),
-      notes: await resolveUpdateLog(tag.name).catch(() =>
-        resolveUpdateLogDefault().catch(() => "No changelog available"),
-      ),
+      notes: resolveReleaseNotes(release.body),
       pub_date: new Date().toISOString(),
       platforms: {
         win64: { signature: "", url: "" }, // compatible with older formats

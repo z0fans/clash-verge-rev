@@ -90,7 +90,7 @@ jobs:
         with:
           tagName: v${{ env.VERSION }}
           releaseName: "Clash Verge Rev v${{ env.VERSION }}"
-          releaseBody: "More new features are now supported."
+          generateReleaseNotes: true
           tauriScript: pnpm
           args: --target ${{ matrix.target }}
 
@@ -229,8 +229,6 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{env.VERSION}}
-          name: "Clash Verge Rev v${{env.VERSION}}"
-          body: "More new features are now supported."
           token: ${{ secrets.GITHUB_TOKEN }}
           fail_on_unmatched_files: false
           files: |
@@ -329,8 +327,6 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{steps.build.outputs.appVersion}}
-          name: "Clash Verge Rev v${{steps.build.outputs.appVersion}}"
-          body: "More new features are now supported."
           token: ${{ secrets.GITHUB_TOKEN }}
           fail_on_unmatched_files: false
           files: src-tauri/target/${{ matrix.target }}/release/bundle/nsis/*setup*
