@@ -169,7 +169,6 @@ async function processRelease(
 
     const updateData = {
       version: getVersionFromTag(tag.name),
-      name: tag.name,
       notes: await resolveUpdateLog(tag.name).catch(() =>
         resolveUpdateLogDefault().catch(() => "No changelog available"),
       ),
@@ -275,11 +274,15 @@ async function processRelease(
     // maybe should test the signature as well
     // delete the null field
     Object.entries(updateData.platforms).forEach(([key, value]) => {
-      if (!value.url) {
+      if (!value.url || !value.signature) {
         console.log(`[Error]: failed to parse release for "${key}"`);
         delete updateData.platforms[key];
       }
     });
+
+    if (Object.keys(updateData.platforms).length === 0) {
+      throw new Error("No platform assets were resolved for updater");
+    }
 
     // Generate a proxy update file for accelerated GitHub resources
     const updateDataNew = JSON.parse(JSON.stringify(updateData));

@@ -293,6 +293,12 @@ jobs:
           tauriScript: pnpm
           args: --target ${{ matrix.target }}
 
+      - name: Portable Bundle
+        if: matrix.os == 'windows-latest'
+        run: pnpm portable ${{ matrix.target }} --alpha
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   alpha-for-linux-arm:
     needs: update_tag
     strategy:

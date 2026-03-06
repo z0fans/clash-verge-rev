@@ -20,6 +20,19 @@ const PROCESS_MAP = {
   arm64: "arm64",
 };
 const arch = target ? ARCH_MAP[target] : PROCESS_MAP[process.arch];
+
+function resolveWindowsExecutable(releaseDir) {
+  const candidates = ["Clash Verge.exe", "clash-verge.exe"];
+
+  for (const fileName of candidates) {
+    const filePath = path.join(releaseDir, fileName);
+    if (fs.existsSync(filePath)) {
+      return filePath;
+    }
+  }
+
+  throw new Error("could not found the app executable");
+}
 /// Script for ci
 /// 打包绿色版/便携版 (only Windows)
 async function resolvePortable() {
@@ -42,7 +55,7 @@ async function resolvePortable() {
 
   const zip = new AdmZip();
 
-  zip.addLocalFile(path.join(releaseDir, "Clash Verge.exe"));
+  zip.addLocalFile(resolveWindowsExecutable(releaseDir));
   zip.addLocalFile(path.join(releaseDir, "verge-mihomo.exe"));
   zip.addLocalFile(path.join(releaseDir, "verge-mihomo-alpha.exe"));
   zip.addLocalFolder(path.join(releaseDir, "resources"), "resources");

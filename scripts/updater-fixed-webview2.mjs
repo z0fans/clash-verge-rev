@@ -10,6 +10,16 @@ function getVersionFromTag(tagName) {
   return tagName.startsWith("v") ? tagName.slice(1) : tagName;
 }
 
+function normalizeRefTag(refValue = "") {
+  if (!refValue) {
+    return "";
+  }
+
+  return refValue.startsWith("refs/tags/")
+    ? refValue.slice("refs/tags/".length)
+    : refValue;
+}
+
 async function resolveLatestStableRelease(github, options, preferredTag) {
   const stableRegex = /^v\d+\.\d+\.\d+$/;
 
@@ -74,8 +84,9 @@ async function resolveUpdater() {
   const options = { owner: context.repo.owner, repo: context.repo.repo };
   const github = getOctokit(process.env.GITHUB_TOKEN);
 
-  const preferredTag =
-    process.env.GITHUB_REF_NAME || process.env.GITHUB_REF || "";
+  const preferredTag = normalizeRefTag(
+    process.env.GITHUB_REF_NAME || process.env.GITHUB_REF || "",
+  );
   const { tagName, release: latestRelease } = await resolveLatestStableRelease(
     github,
     options,
@@ -84,7 +95,6 @@ async function resolveUpdater() {
 
   const updateData = {
     version: getVersionFromTag(tagName),
-    name: tagName,
     notes: await resolveUpdateLog(tagName).catch(() =>
       resolveUpdateLogDefault().catch(() => "No changelog available"),
     ),

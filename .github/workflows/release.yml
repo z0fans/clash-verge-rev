@@ -105,6 +105,12 @@ jobs:
             src-tauri/target/${{ matrix.target }}/release/bundle/nsis/*-setup.exe
             src-tauri/target/${{ matrix.target }}/release/bundle/nsis/*-setup.exe.sig
 
+      - name: Portable Bundle
+        if: matrix.os == 'windows-latest'
+        run: pnpm portable ${{ matrix.target }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   release-for-linux-arm:
     needs: [release]
     strategy:
